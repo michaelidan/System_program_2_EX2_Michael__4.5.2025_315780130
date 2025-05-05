@@ -126,10 +126,22 @@ public:
     
     // אופרטור גישה לאיברים - מאפשר גישה לאיבר ספציפי במטריצה
     // למשל, mat[i][j] מחזיר את האיבר בשורה i ועמודה j
-    double* operator[](int index);
-    
-    // אופרטור גישה לאיברים (קבוע) - מאפשר גישה לקריאה בלבד לאיבר ספציפי
-    const double* operator[](int index) const;
+    class RowProxy {
+        SquareMat& mat;
+        int row;
+    public:
+        RowProxy(SquareMat& m, int r) : mat(m), row(r) {}
+        double& operator[](int col);
+    };
+    class ConstRowProxy {
+        const SquareMat& mat;
+        int row;
+    public:
+        ConstRowProxy(const SquareMat& m, int r) : mat(m), row(r) {}
+        const double& operator[](int col) const;
+    };
+    RowProxy operator[](int index);
+    ConstRowProxy operator[](int index) const;
 
     // אופרטורי הגדלה והקטנה
     // אופרטור הגדלה (prefix) - מגדיל את כל איברי המטריצה באחד
