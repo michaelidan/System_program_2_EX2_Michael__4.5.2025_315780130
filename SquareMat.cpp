@@ -211,10 +211,22 @@ SquareMat SquareMat::operator-(const SquareMat& other) const {
 
 // אופרטור כפל מטריצות
 SquareMat SquareMat::operator*(const SquareMat& other) const {
+    // בדיקת התאמת גדלים
+    if (size != other.size) {
+        throw std::invalid_argument("Matrices must be of the same size");
+    }
     // יצירת מטריצה חדשה
-    SquareMat result(*this);
-    // כפל במטריצה האחרת
-    result *= other;
+    SquareMat result(size);
+    // כפל מטריצות
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            double sum = 0;
+            for (int k = 0; k < size; k++) {
+                sum += matrix[i][k] * other.matrix[k][j];
+            }
+            result.matrix[i][j] = sum;
+        }
+    }
     return result;
 }
 
@@ -282,16 +294,22 @@ bool SquareMat::operator!=(const SquareMat& other) const {
 
 // אופרטור קטן מ-
 bool SquareMat::operator<(const SquareMat& other) const {
-    // חישוב סכום האיברים של שתי המטריצות
-    double sum1 = 0, sum2 = 0;
+    // בדיקת התאמת גדלים
+    if (size != other.size) {
+        throw std::invalid_argument("Matrices must be of the same size");
+    }
+    // השוואת האיברים אחד אחד
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
-            sum1 += matrix[i][j];
-            sum2 += other.matrix[i][j];
+            if (matrix[i][j] < other.matrix[i][j]) {
+                return true;
+            }
+            if (matrix[i][j] > other.matrix[i][j]) {
+                return false;
+            }
         }
     }
-    // השוואת הסכומים
-    return sum1 < sum2;
+    return false;  // המטריצות שוות
 }
 
 // אופרטור גדול מ-
@@ -314,13 +332,30 @@ bool SquareMat::operator>=(const SquareMat& other) const {
 SquareMat SquareMat::operator^(int power) const {
     // בדיקת תקינות החזקה
     if (power < 0) {
-        throw std::invalid_argument("Power must be non-negative");
+        throw std::invalid_argument("Power cannot be negative");
     }
-    // יצירת מטריצה חדשה
-    SquareMat result(*this);
-    // חישוב החזקה על ידי כפל חוזר
-    for (int i = 1; i < power; i++) {
-        result *= *this;
+    // אם החזקה היא 0, מחזירים מטריצת יחידה
+    if (power == 0) {
+        SquareMat result(size);
+        for (int i = 0; i < size; i++) {
+            result.matrix[i][i] = 1;
+        }
+        return result;
+    }
+    // אם החזקה היא 1, מחזירים את המטריצה המקורית
+    if (power == 1) {
+        return *this;
+    }
+    // חישוב החזקה
+    SquareMat result = *this;
+    SquareMat base = *this;
+    power--;  // כבר הכפלנו פעם אחת
+    while (power > 0) {
+        if (power % 2 == 1) {
+            result = result * base;
+        }
+        base = base * base;
+        power /= 2;
     }
     return result;
 }
@@ -343,22 +378,34 @@ double SquareMat::operator!() const {
     return calculateDeterminant();
 }
 
-// אופרטור גישה לאיברים
-double* SquareMat::operator[](int index) {
-    // בדיקת תקינות האינדקס
-    if (index < 0 || index >= size) {
-        throw std::out_of_range("Index out of range");
+// Proxy classes for safe element access
+
+double& SquareMat::RowProxy::operator[](int col) {
+    if (col < 0 || col >= mat.size) {
+        throw std::out_of_range("Column index out of range");
     }
-    return matrix[index];
+    return mat.matrix[row][col];
 }
 
-// אופרטור גישה לאיברים (קבוע)
-const double* SquareMat::operator[](int index) const {
-    // בדיקת תקינות האינדקס
-    if (index < 0 || index >= size) {
-        throw std::out_of_range("Index out of range");
+const double& SquareMat::ConstRowProxy::operator[](int col) const {
+    if (col < 0 || col >= mat.size) {
+        throw std::out_of_range("Column index out of range");
     }
-    return matrix[index];
+    return mat.matrix[row][col];
+}
+
+SquareMat::RowProxy SquareMat::operator[](int index) {
+    if (index < 0 || index >= size) {
+        throw std::out_of_range("Row index out of range");
+    }
+    return RowProxy(*this, index);
+}
+
+SquareMat::ConstRowProxy SquareMat::operator[](int index) const {
+    if (index < 0 || index >= size) {
+        throw std::out_of_range("Row index out of range");
+    }
+    return ConstRowProxy(*this, index);
 }
 
 // אופרטורי הגדלה והקטנה
@@ -501,4 +548,4 @@ std::ostream& operator<<(std::ostream& os, const SquareMat& mat) {
     return os;
 }
 
-} // namespace Matrix 
+} // namespace Matrix
