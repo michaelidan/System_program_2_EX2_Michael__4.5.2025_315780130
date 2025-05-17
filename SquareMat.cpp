@@ -91,6 +91,68 @@ SquareMat& SquareMat::operator=(const SquareMat& other) {
     return *this;
 }
 
+
+
+// אופרטורים אריתמטיים
+// אופרטור חיבור
+SquareMat SquareMat::operator+(const SquareMat& other) const {
+    // יצירת מטריצה חדשה
+    SquareMat result(*this);
+    // חיבור המטריצה האחרת
+    result += other;
+    return result;
+}
+
+// אופרטור חיסור
+SquareMat SquareMat::operator-(const SquareMat& other) const {
+    // יצירת מטריצה חדשה
+    SquareMat result(*this);
+    // חיסור המטריצה האחרת
+    result -= other;
+    return result;
+}
+
+// אופרטור חילוק בסקלר
+SquareMat SquareMat::operator/(double scalar) const {
+    // יצירת מטריצה חדשה
+    SquareMat result(*this);
+    // חילוק בסקלר
+    result /= scalar;
+    return result;
+}
+
+// אופרטור כפל איברי
+SquareMat SquareMat::operator%(const SquareMat& other) const {
+    // יצירת מטריצה חדשה
+    SquareMat result(*this);
+    // כפל איברי
+    result %= other;
+    return result;
+}
+
+// אופרטור מודולו
+SquareMat SquareMat::operator%(int scalar) const {
+    // יצירת מטריצה חדשה
+    SquareMat result(*this);
+    // חישוב מודולו
+    result %= scalar;
+    return result;
+}
+
+// אופרטור מינוס אונארי
+SquareMat SquareMat::operator-() const {
+    // יצירת מטריצה חדשה
+    SquareMat result(*this);
+    // היפוך סימן כל האיברים
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            result.matrix[i][j] = -matrix[i][j];
+        }
+    }
+    return result;
+}
+
+
 // אופרטור חיבור והשמה
 SquareMat& SquareMat::operator+=(const SquareMat& other) {
     // בדיקת התאמת גדלים
@@ -121,27 +183,33 @@ SquareMat& SquareMat::operator-=(const SquareMat& other) {
     return *this;
 }
 
+// אופרטור כפל מטריצות
+SquareMat SquareMat::operator*(const SquareMat& other) const {
+    // בדיקת התאמת גדלים
+    if (size != other.size) {
+        throw std::invalid_argument("Matrices must be of the same size");
+    }
+    // יצירת מטריצה חדשה
+    SquareMat result(size);
+    // כפל מטריצות 
+    for (int i = 0; i < size; i++) {          // עבור כל שורה במטריצה A
+        for (int j = 0; j < size; j++) {      // עבור כל עמודה במטריצה B
+            for (int k = 0; k < size; k++) {  // עבור כל אינדקס בשורה ובעמודה
+                result.matrix[i][j] += matrix[i][k] * other.matrix[k][j];
+            }
+        }
+    }
+    return result;
+}
+
 // אופרטור כפל והשמה
 SquareMat& SquareMat::operator*=(const SquareMat& other) {
     // בדיקת התאמת גדלים
     if (size != other.size) {
         throw std::invalid_argument("Matrices must be of the same size");
     }
-    // יצירת מטריצה זמנית לשמירת התוצאה
-    SquareMat temp(size);
-    // כפל מטריצות
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            double sum = 0;
-            // חישוב האיבר החדש
-            for (int k = 0; k < size; k++) {
-                sum += matrix[i][k] * other.matrix[k][j];
-            }
-            temp.matrix[i][j] = sum;
-        }
-    }
-    // העתקת התוצאה למטריצה הנוכחית
-    *this = temp;
+    // שימוש באופרטור כפל מטריצות שהוגדר
+    *this = *this * other;
     return *this;
 }
 
@@ -188,86 +256,6 @@ SquareMat& SquareMat::operator%=(int scalar) {
         }
     }
     return *this;
-}
-
-// אופרטורים אריתמטיים
-// אופרטור חיבור
-SquareMat SquareMat::operator+(const SquareMat& other) const {
-    // יצירת מטריצה חדשה
-    SquareMat result(*this);
-    // חיבור המטריצה האחרת
-    result += other;
-    return result;
-}
-
-// אופרטור חיסור
-SquareMat SquareMat::operator-(const SquareMat& other) const {
-    // יצירת מטריצה חדשה
-    SquareMat result(*this);
-    // חיסור המטריצה האחרת
-    result -= other;
-    return result;
-}
-
-// אופרטור כפל מטריצות
-SquareMat SquareMat::operator*(const SquareMat& other) const {
-    // בדיקת התאמת גדלים
-    if (size != other.size) {
-        throw std::invalid_argument("Matrices must be of the same size");
-    }
-    // יצירת מטריצה חדשה
-    SquareMat result(size);
-    // כפל מטריצות
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            double sum = 0;
-            for (int k = 0; k < size; k++) {
-                sum += matrix[i][k] * other.matrix[k][j];
-            }
-            result.matrix[i][j] = sum;
-        }
-    }
-    return result;
-}
-
-// אופרטור חילוק בסקלר
-SquareMat SquareMat::operator/(double scalar) const {
-    // יצירת מטריצה חדשה
-    SquareMat result(*this);
-    // חילוק בסקלר
-    result /= scalar;
-    return result;
-}
-
-// אופרטור כפל איברי
-SquareMat SquareMat::operator%(const SquareMat& other) const {
-    // יצירת מטריצה חדשה
-    SquareMat result(*this);
-    // כפל איברי
-    result %= other;
-    return result;
-}
-
-// אופרטור מודולו
-SquareMat SquareMat::operator%(int scalar) const {
-    // יצירת מטריצה חדשה
-    SquareMat result(*this);
-    // חישוב מודולו
-    result %= scalar;
-    return result;
-}
-
-// אופרטור מינוס אונארי
-SquareMat SquareMat::operator-() const {
-    // יצירת מטריצה חדשה
-    SquareMat result(*this);
-    // היפוך סימן כל האיברים
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            result.matrix[i][j] = -matrix[i][j];
-        }
-    }
-    return result;
 }
 
 // אופרטורי השוואה
